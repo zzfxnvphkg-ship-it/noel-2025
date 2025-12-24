@@ -216,17 +216,23 @@
     }
 
     #christmas-message h2 {
-      font-family: 'Cinzel', 'Times New Roman', serif;
-      font-size: 72px;
+      font-family: 'Dancing Script', cursive;
+      font-size: 40px;
       font-weight: 700;
       margin: 0;
-      background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 25%, #ff6b6b 50%, #fff 75%, #ff6b6b 100%);
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: shimmer 2s ease-in-out infinite;
-      letter-spacing: 4px;
+      color: #ffff;
+      animation: glow 2s ease-in-out infinite alternate;
+      letter-spacing: 2px;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 20px rgba(255, 217, 102, 0.8), 0 0 40px rgba(212, 175, 55, 0.6);
+      }
+
+      to {
+        text-shadow: 0 0 30px rgba(255, 238, 167, 1), 0 0 60px rgba(255, 217, 102, 0.8), 0 0 80px rgba(212, 175, 55, 0.6);
+      }
     }
 
     #christmas-message p {
@@ -236,6 +242,43 @@
       margin-top: 20px;
       text-shadow: 0 0 30px rgba(255, 217, 61, 0.6);
       animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .love-photos {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .love-photos img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid rgba(212, 175, 55, 0.8);
+      box-shadow: 0 0 15px rgba(255, 217, 102, 0.5);
+      animation: photoFloat 2s ease-in-out infinite;
+    }
+
+    .love-photos img:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+
+    .love-photos img:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+
+    @keyframes photoFloat {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
     }
 
     @keyframes shimmer {
@@ -312,10 +355,14 @@
     <canvas id="webcam-preview" style="display: none"></canvas>
   </div>
 
-  <!-- Christmas Message Overlay -->
+  <!-- Love Message Overlay -->
   <div id="christmas-message">
-    <h2>🎄 Merry Christmas 🎄</h2>
-    <p>❤️ Chúc Mừng Giáng Sinh ❤️</p>
+    <h2> Chúc Thuỳ Dương Dáng Xinh Dzui Dzẻ Nho </h2>
+    <div class="love-photos">
+      <img src="images/1.png" alt="Photo 1">
+      <img src="images/2.png" alt="Photo 2">
+      <img src="images/3.png" alt="Photo 3">
+    </div>
   </div>
 
   <script type="module">
@@ -338,7 +385,7 @@
       particles: {
         count: 1500,
         dustCount: 2500,
-        heartCount: 300, // Số lượng trái tim
+        heartCount: 0, // Bỏ trái tim
         fireworkCount: 30, // Pháo hoa (ít để tránh lag)
         treeHeight: 24,
         treeRadius: 8,
@@ -388,7 +435,7 @@
       createTextures();
       createParticles();
       createDust();
-      createHearts();
+      // createHearts(); // Bỏ trái tim
       loadPredefinedImages();
       setupPostProcessing();
       setupEvents();
@@ -608,20 +655,25 @@
       }
 
       calculateHeartPosition() {
-        // Sử dụng công thức tham số hóa hình trái tim 3D
-        const scale = 1.2; // Kích thước trái tim
+        // Công thức trái tim đẹp hơn - phân bố đều trên bề mặt
         const t = Math.random() * Math.PI * 2;
-        const s = Math.random() * Math.PI;
 
-        // Heart surface parametric equations
+        // Heart curve (2D) với công thức chuẩn
         const x = 16 * Math.pow(Math.sin(t), 3);
         const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-        const z = (Math.random() - 0.5) * 4; // Độ dày của trái tim
+
+        // Tạo độ dày 3D cho trái tim - hình cầu nhỏ xung quanh đường viền
+        const thickness = 1.5 + Math.random() * 2; // Độ dày ngẫu nhiên
+        const angle3D = Math.random() * Math.PI * 2;
+        const offsetX = Math.cos(angle3D) * thickness * 0.3;
+        const offsetZ = Math.sin(angle3D) * thickness;
+
+        const scale = 0.55; // Kích thước tổng thể
 
         this.posHeart.set(
-          x * scale * 0.15,
-          y * scale * 0.15 + 2, // Đẩy lên một chút
-          z
+          (x * 0.12 + offsetX) * scale,
+          (y * 0.12) * scale + 2, // Đẩy lên giữa màn hình
+          offsetZ * scale
         );
       }
 
@@ -1113,15 +1165,15 @@
 
         // Ngưỡng đã được vandiep thử nghiệm rất tốt
         if (distIndex < 0.15 && distThumb < 0.15) {
-          STATE.mode = "CHRISTMAS"; // hoặc 'HEART' tùy bạn
+          // Giữ nguyên mode hiện tại (TREE), chỉ hiện chữ và pháo hoa
           STATE.christmasActive = true;
           STATE.christmasTimer = 6; // hiển thị 6 giây
           christmasMessage.classList.add("show");
           launchFireworks();
-          debugInfo.innerText = "❤️ Heart gesture! Chúc Mừng Giáng Sinh!";
+          debugInfo.innerText = "❤️ I LOVE YOU!";
 
-          // Optional: rung nhẹ cây hoặc thêm hiệu ứng
-          return; // Quan trọng: thoát sớm, không xử lý cử chỉ 1 tay nữa
+          // Quan trọng: thoát sớm, không xử lý cử chỉ 1 tay nữa
+          return;
         }
       }
 
@@ -1245,17 +1297,10 @@
       mainGroup.rotation.y = STATE.rotation.y;
       mainGroup.rotation.x = STATE.rotation.x;
 
-      // Hiệu ứng tim đập (beating heart effect)
-      let heartBeatScale = 1;
-      if (STATE.christmasActive) {
-        // Nhịp đập tim: 1.0 -> 1.15 -> 1.0 theo chu kỳ
-        const beatSpeed = 3; // Tốc độ đập tim (nhịp/giây)
-        heartBeatScale = 1 + 0.15 * Math.sin(clock.elapsedTime * beatSpeed * Math.PI * 2);
-      }
-
-      const currentMode = STATE.christmasActive ? "CHRISTMAS" : STATE.mode;
+      // Khi christmasActive, giữ nguyên TREE mode, chỉ hiện chữ và pháo hoa
+      const currentMode = STATE.mode;
       particleSystem.forEach((p) =>
-        p.update(dt, currentMode, STATE.focusTarget, heartBeatScale)
+        p.update(dt, currentMode, STATE.focusTarget, 1)
       );
 
       updateFireworks(dt);
